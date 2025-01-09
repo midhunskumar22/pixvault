@@ -1,4 +1,4 @@
-pixvault allow photographers for sharing images with like and dislike feature
+#pixvault allow photographers for sharing images with like and dislike feature
 pixvault for windows  will  generate and lunch a fully customizable portfolio webpage which can accessed by clints across the globe ,through this portfolio webpage photographer clints can access , view ,like ,dislike ,and download images in full clarity ,photographer can disallow download option from clints ,and he can see images which are liked by his clints Separately ,for more information go to https://www.pixvault.online
 
 1)first install ZeroTier one vpn which is included in this file
