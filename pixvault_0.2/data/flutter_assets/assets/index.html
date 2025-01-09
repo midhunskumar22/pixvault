@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Photographer Cloud Share - Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+
+.folder-item {
+  background-color: #eb1010; /* Light gray background */
+  border: 10px solid #f63f3f; /* Light border */
+  padding-left: 30px; /* Adjust for icon spacing */
+  background-image: url('assets/folder_icon.png'); /* Replace with your icon path */
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 2000px; /* Adjust icon size */
+  z-index: 990000;
+}
+
+
+.folder-item img {
+  width: 164px;                /* Smaller icon size */
+  height: 164px;
+  margin: auto;               /* Center the folder icon */
+}
+.size-control {
+        position: fixed;
+        top: 6px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        background-color: rgb(241, 234, 234);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 10;
+    }
+    .size-control label {
+        margin-right: 10px;
+        font-size: 0.9em;
+        color: #333;
+    }
+    .size-control input[type="range"] {
+        width: 150px;
+    }
+    /* Modify gallery to support dynamic sizing */
+    .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(var(--image-size, 250px), 1fr));
+    }
+    .gallery-item {
+        transition: all 0.3s ease;
+    }
+    .gallery-item img {
+        height: var(--image-height, 250px);
+    }    
+    .download-section {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 15px;
+    }
+    .download-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .download-btn:hover {
+        background-color: #0056b3;
+    }
+    .warning-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #faf8fe;
+        border: 3px solid #f5c6cb;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 400px;
+        text-align: center;
+        z-index: 1000;
+        display: none;
+    }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            touch-action: manipulation;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--image-size, 250px), 1fr));
+            grid-gap: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .gallery-item {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .gallery-item img {
+            width: var(--image-height, 250px);
+         
+            width: 100%;
+            object-fit: cover;
+        }
+        .gallery-item-info {
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        .gallery-item-info h3 {
+            margin: 0;
+            font-size: 0.9em;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .gallery-item-info p {
+            margin: 5px 0 0;
+            font-size: 0.8em;
+            color: #777;
+        }
+        #loading {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 50px;
+        }
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .liked-heart {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: red;
+            font-size: 24px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        #lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            
+        }
+        
+        #lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #lightbox-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .lightbox-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            z-index: 1002;
+            font-size: 24px;
+            transition: background-color 0.3s;
+        }
+        
+        .lightbox-nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        
+        #prev-btn {
+            left: 10px;
+        }
+        
+        #next-btn {
+            right: 10px;
+        }
+        
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            z-index: 1003;
+        }
+        #heart-symbol {
+         position: absolute;
+         right: 10px;
+         bottom: 10px;
+         z-index: 2004;
+         position: 'fixed'; 
+            right: '10px';
+            bottom: '10px'; 
+           
+            color: 'red';
+            display: 'none';
+           position: absolute;
+        }
+        .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .popup {
+      position: relative;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 80%;
+      max-height: 80%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .popup .close-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ff5555;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .popup .images-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      max-width: 100%;
+    }
+
+    .popup img {
+      display: block;
+      width: auto;
+      height: 300px;
+      margin: 10px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+   
+    <div class="container">
+        <h1>Image Gallery</h1>
+        <div id="loading">Loading images...</div>
+        <div id="gallery" class="gallery" style="display:none;"></div>
+    </div>
+    <div class="size-control">
+        <label for="imageSizeSlider">Size:</label>
+        <input type="range" id="imageSizeSlider" min="20" max="500" value="250" step="50">
+    </div>
+
+    <div class="download-section">
+        <button id="downloadAllBtn" class="download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download All
+        </button>
+        <button id="downloadLikedBtn" class="download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            Download Liked
+        </button>
+    </div>
+
+    <div id="warningModal" class="warning-modal">
+        <div style="padding-right: 70%;">
+            <button id="closeWarningBtnonly" class="download-btn">
+               
+                close
+            </button>
+        </div>
+        <div style="padding-bottom: 10px;">
+        <p> please save likes before downloading
+            </p>
+            <button id="readmebtn"onclick="showPopup()">read me before downloading</button>
+        </div>
+        <div style="padding-left: 30%;">
+        <button id="closeWarningBtn" class="download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download
+        </button>
+        </div>
+        
+    </div>
+    <div id="popup-overlay" class="popup-overlay">
+        <div class="popup">
+          <button class="close-btn" onclick="closePopup()">Close</button>
+          <div class="images-container">
+            
+
+
+            <a href="https://ibb.co/P9FchCK"><img src="https://i.ibb.co/4YK8TNz/IMG-3359.jpg" alt="IMG-3359" border="0"></a>
+            <a href="https://ibb.co/JrzhDhC"><img src="https://i.ibb.co/L9CGVGv/IMG-3360.jpg" alt="IMG-3360" border="0"></a>
+            
+        
+          </div>
+        </div>
+    </div>
+    <div id="lightbox">
+        <button id="close-btn">×</button>
+        <button id="prev-btn" class="lightbox-nav-btn">&#10094;</button>
+        <div id="lightbox-content">
+            <img id="lightbox-image" src="" alt="Full screen image">
+        </div>
+        <button id="next-btn" class="lightbox-nav-btn">&#10095;</button>
+    </div>
+    <script>
+    function showPopup() {
+      document.getElementById('popup-overlay').style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popup-overlay').style.display = 'none';
+    }
+    function initImageSizeControl() {
+        const slider = document.getElementById('imageSizeSlider');
+        const gallery = document.getElementById('gallery');
+        // Set initial values
+        gallery.style.setProperty('--image-size', `250px`);
+        gallery.style.setProperty('--image-height', `212px`);
+        slider.addEventListener('input', () => {
+            const size = slider.value;
+            
+            // Update CSS variables to control image and grid sizing
+            gallery.style.setProperty('--image-size', `${size}px`);
+            gallery.style.setProperty('--image-height', `${Math.floor(size * 0.85)}px`);
+            
+            // Reapply hover and transition effects
+            const galleryItems = gallery.querySelectorAll('.gallery-item');
+            galleryItems.forEach(item => {
+                item.style.transform = 'scale(1)';
+            });
+        });
+    }
+    
+
+    async function initializeLikedImages() {
+    try {
+        const response = await fetch('/get-liked');
+        const likedImages = await response.json();
+        return new Set(likedImages);
+    } catch (error) {
+        console.error('Error loading liked images:', error);
+        return new Set();
+    }
+}
+
+let likedImagesSet = new Set();
+
+// Initialize liked images when the page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    likedImagesSet;// = await initializeLikedImages();
+});
+
+async function toggleLike(imageName, heartEl,index) {
+    try {
+       
+        // Toggle in memory first
+        if (likedImagesSet.has(imageName)) {
+            likedImagesSet.delete(imageName);
+           // heartEl.innerHTML = '&#x2661;';
+           console.log(imageName);
+          
+
+        } else {
+            likedImagesSet.add(imageName);
+           // heartEl.innerHTML = '&#10084;';
+            
+        }
+        if( heartEl.innerHTML === '♡'){
+            //const heartEl1 = existingItem.querySelector('.liked-heart');
+            //heartEl1.innerHTML='&#x2665;&#xfe0f;';
+            heartEl.innerHTML = '&#x2665;&#xfe0f;';
+           
+        }else{
+            heartEl.innerHTML = '&#x2661;';
+            
+        }loadImages(index,1)
+        return heartEl.innerHTML;
+    } catch (error) {
+        console.error('Error toggling like:', error);
+    }
+}
+
+async function saveAllLikedImages() {
+    try {
+        const response = await fetch('/save-liked', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Array.from(likedImagesSet))
+            
+            
+        });likedImagesSet.forEach(value => console.log(value));
+
+        if (response.ok) {
+            alert('Liked images saved and renamed successfully!');
+        } else {
+            throw new Error('Failed to save liked images');
+        }
+    } catch (error) {
+        console.error('Error saving liked images:', error);
+        alert('Failed to save liked images. Please try again.');
+    }
+}
+
+function createSaveButton() {
+    
+
+
+    const backButton = document.createElement('button');
+    backButton.id = 'back-button';
+    backButton.className = 'navigation-button';
+    backButton.innerHTML = '← Back';
+    backButton.style.display = 'block';  // Changed from 'none' to 'block'
+    backButton.style.zIndex = '1000';
+    backButton.style.position = 'fixed';
+    backButton.style.top = '50px';
+    backButton.style.left = '10px';
+    backButton.style.padding = '5px 10px';
+    backButton.style.fontSize = '12px';
+    backButton.style.fontWeight = 'bold';
+    backButton.style.backgroundColor = '#4CAF50';
+    backButton.style.color = '#fff';
+    backButton.style.border = 'none';
+    backButton.style.borderRadius = '20px';
+    backButton.style.cursor = 'pointer';
+    backButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
+    backButton.style.transition = 'all 0.3s ease';
+
+    // Add immediate visual feedback for clicks
+    backButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        backButton.style.opacity = '0.7';  // Visual feedback
+        await navigateBack();
+        backButton.style.opacity = '1';
+    });
+
+    // Insert back button before gallery
+    const galleryEl = document.getElementById('gallery');
+    galleryEl.parentNode.insertBefore(backButton, galleryEl);
+    
+    // Append save button to document
+    // document.body.appendChild(saveButton);
+
+    // Show/hide back button based on folder level
+    // You should call this whenever folder navigation happens
+   
+    const saveButton = document.createElement('button');
+    saveButton.id = 'save-liked-images';
+    saveButton.textContent = 'Save Liked Images';
+    saveButton.style.position = 'fixed';
+    saveButton.style.top = '10px';
+    saveButton.style.left = '10px';
+    saveButton.style.zIndex = '1000';
+    saveButton.style.padding = '5px 10px'; // Reduced padding
+    saveButton.style.fontSize = '12px'; // Smaller font size
+    saveButton.style.fontWeight = 'bold';
+    saveButton.style.backgroundColor = '#4CAF50'; // Green color
+    saveButton.style.color = '#fff'; // White text
+    saveButton.style.border = 'none';
+    saveButton.style.borderRadius = '20px'; // Rounded corners
+    saveButton.style.cursor = 'pointer';
+    saveButton.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)'; // Subtle shadow
+    saveButton.style.transition = 'all 0.3s ease'; // Smooth transition
+
+    // Hover and focus effects
+    saveButton.addEventListener('mouseenter', function() {
+        saveButton.style.backgroundColor = '#45a049'; // Darker green on hover
+        saveButton.style.transform = 'scale(1.1)';
+    });
+    saveButton.addEventListener('mouseleave', function() {
+        saveButton.style.backgroundColor = '#4CAF50'; // Original green color
+        saveButton.style.transform = 'scale(1)';
+    });
+
+    // Click effect
+    saveButton.addEventListener('mousedown', function() {
+        saveButton.style.transform = 'scale(0.95)';
+    });
+    saveButton.addEventListener('mouseup', function() {
+        saveButton.style.transform = 'scale(1)';
+    });
+
+    saveButton.addEventListener('click', saveAllLikedImages);
+    document.body.appendChild(saveButton);
+    
+    backButton.addEventListener('click', navigateBack);
+}
+
+async function navigateBack() {
+    try {
+        const backButton = document.getElementById('back-button');
+        const loadingEl = document.getElementById('loading');
+        const galleryEl = document.getElementById('gallery');
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (galleryEl) galleryEl.style.display = 'none';
+        const response = await fetch('/navigateBack', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to navigate back: ${response.statusText}`);
+        }else{}
+
+        const data = await response.json();
+        if (backButton) {
+            backButton.style.display = data.isRoot ? 'none' : 'block';
+        }
+        // Hide back button if we're at root
+        backButton.style.display = data.isRoot ? 'block' : 'block';
+          // Clear existing gallery content
+          if (galleryEl) {
+            galleryEl.innerHTML = '';
+        }
+        // Reload images from the new path
+        await loadImages(null, 0);
+    } catch (error) {
+        console.error('Error navigating back:', error);
+        // Show error to user
+        if (loadingEl) {
+            loadingEl.textContent = 'Error navigating back. Please try again.';
+        }
+    } finally {
+        // Ensure loading state is hidden
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+        }
+    
+    }
+}
+
+async function navigateToFolder(folderName) {
+    try {
+        const response = await fetch('/setFolder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ folderPath: folderName })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to set folder: ${response.statusText}`);
+        }
+
+        // Reload images from the new folder
+        await loadImages(null, 0);
+    } catch (error) {
+        console.error('Error navigating to folder:', error);
+    }
+}
+
+
+// Advanced Viewport-Based Image Loading Function
+async function loadImages(preserveIndex = null, lightUpdate = 0) {
+    const galleryEl = document.getElementById('gallery');
+    const loadingEl = document.getElementById('loading');
+    console.log("load images vilichu");
+    try {
+        
+        const [links] = await Promise.all([
+            fetch('/list')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch images: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+        ]);
+    
+        // Efficient sorting using localeCompare with options
+       // links.forEach(link => {
+       //     link.reversedName = link.name.split('').reverse().join('');
+      //  });
+
+      //  links.sort((a, b) => a.reversedName.localeCompare(b.reversedName, undefined, { sensitivity: 'base' }));
+                 
+      links.forEach(link => {
+       link.reversedName = link.name.split('').reverse().join('');
+     });
+
+        links.sort((a, b) => {
+         // Check if names start with 'l' (case-insensitive)
+         const aStartsWithL = a.name.trim().toLowerCase().startsWith('l');
+          const bStartsWithL = b.name.trim().toLowerCase().startsWith('l');
+
+          // Prioritize names starting with 'l'
+         if (aStartsWithL && !bStartsWithL) return -1; // 'a' comes first
+          if (!aStartsWithL && bStartsWithL) return 1;  // 'b' comes first
+
+             // If both start with 'l' or neither does, sort by reversedName
+             return a.reversedName.localeCompare(b.reversedName, undefined, { sensitivity: 'base' });
+        });
+
+
+
+
+
+
+
+
+
+
+
+        const fragment = document.createDocumentFragment();
+        const imageLinks = links.map(link => link.path);
+        
+        const isFullReload = galleryEl.children.length === 0 || lightUpdate === 0;
+        if (isFullReload) {
+            galleryEl.style.display = 'none';
+            loadingEl.style.display = 'block';
+        }
+
+        // Create save button if it doesn't exist
+        if (!document.getElementById('save-liked-images')) {
+            createSaveButton();
+        }
+
+        // Viewport-based image loading
+        const createGalleryItems = () => {
+            if (lightUpdate === 1) {
+                const galleryItems = Array.from(galleryEl.getElementsByClassName('gallery-item'));
+                
+                links.forEach((link, index) => {
+                    const existingItem = galleryItems.find(item => 
+                        item.querySelector('img').alt === link.name
+                    );
+
+                    if (existingItem) {
+                        // Update info elements
+                        const infoEl = existingItem.querySelector('.gallery-item-info');
+                        if (infoEl) {
+                            const nameEl = infoEl.querySelector('h3');
+                            const sizeEl = infoEl.querySelector('p');
+                            
+                            if (nameEl) nameEl.textContent = link.name;
+                            if (sizeEl) sizeEl.textContent = link.size;
+                        }
+
+                        // Update heart icon
+                       // In the light update section
+                        const heart1El = existingItem.querySelector('.liked-heart');
+                        if (heart1El ) {
+                         const isLiked = link.name.startsWith('liked');
+                         if(isLiked ^ likedImagesSet.has(link.name)){
+                            
+                            heart1El.innerHTML = '&#10084;';
+                         }else{
+                            heart1El.innerHTML =  '&#x2661;';
+                         }
+                        
+                         heart1El.setAttribute('data-name', link.name);
+                        }
+                    }
+                });
+
+                if (preserveIndex !== null) {
+                    const galleryItems = galleryEl.getElementsByClassName('gallery-item');
+                    if (galleryItems[preserveIndex]) {
+                        galleryItems[preserveIndex].scrollIntoView({
+                            behavior: 'auto',
+                            block: 'center'
+                        });console.log(preserveIndex+'midhun');
+                    }
+                }
+
+                return; // Exit early for light update
+            }
+
+            // Remove any existing observers
+            if (window.imageObserver) {
+                window.imageObserver.disconnect();
+            }
+
+            // Create Intersection Observer for images
+            window.imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const img = entry.target.querySelector('img');
+            const imgContainer = entry.target;
+
+            // Load image if not already loaded
+            if (!img.src) {
+                const linkIndex = imgContainer.getAttribute('data-index');
+                const link = links[linkIndex];
+                
+                // Skip retry logic for folders
+                if (link.isDirectory) {
+                    img.src = '/folder-icon.png';  // Use a folder icon instead
+                    observer.unobserve(imgContainer);
+                    return;
+                }
+                
+                img.src = link.path;
+                img.onerror = () => {
+                    // Retry loading only for actual images
+                    setTimeout(() => {
+                        img.src = link.path;
+                    }, 1000);
+                };
+            }
+
+            // Stop observing this image
+            observer.unobserve(imgContainer);
+        }
+    });
+}, {
+    root: null, // viewport
+    rootMargin: '50%', // Load images 50% before/after viewport
+    threshold: 0 // Trigger as soon as even a pixel is visible
+});
+
+// Create gallery items with deferred loading
+links.forEach((link, index) => {
+    const imgEl = document.createElement('div');
+    imgEl.className = 'gallery-item';
+    imgEl.setAttribute('data-index', index);
+    
+    const img = document.createElement('img');
+    img.alt = link.name;
+    img.loading = 'lazy'; // Native lazy loading as backup
+    
+    // Add folder-specific class if it's a directory
+    if (link.isDirectory) {
+    // Add debounce flag
+    let isNavigating = false;
+    
+    imgEl.addEventListener('click', async (e) => {
+        // Prevent navigation if already in progress
+        if (isNavigating) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        
+        isNavigating = true;
+        
+        try {
+            await navigateToFolder(link.path);
+        } catch (error) {
+            console.error('Navigation error:', error);
+        } finally {
+            // Reset the flag after a delay to prevent rapid consecutive clicks
+            setTimeout(() => {
+                isNavigating = false;
+            }, 500); // 500ms cooldown
+        }
+    });
+    
+    imgEl.innerHTML = `
+        <svg width="210" height="210" viewBox="0 0 24 24">
+            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                  fill="#FFA000"/>
+        </svg>
+    `;
+}else{
+         // Event handlers
+            const openLightboxHandler = () => {
+               // Only open lightbox for non-directory items
+               if (!link.isDirectory) {
+                   openLightbox(index, imageLinks, links);
+                }
+            };
+    
+     const doubleTapHandler = (e) => {
+        // Skip double tap handling for folders
+        if (link.isDirectory) return;
+        
+        const currentTime = Date.now();
+        const tapLength = currentTime - (imgEl.lastTap || 0);
+
+        const heart1El = imgEl.querySelector('.liked-heart');
+        if (!e.target.isEqualNode(heart1El)) {
+            if (tapLength < 300 && tapLength > 0) {
+                e.preventDefault();
+            }
+        }
+        imgEl.lastTap = currentTime;
+     };
+
+    img.addEventListener('click', openLightboxHandler);
+    imgEl.addEventListener('click', doubleTapHandler);
+    imgEl.appendChild(img);
+    }
+    
+   // 
+
+   
+
+    // Info element creation
+    const infoEl = document.createElement('div');
+    infoEl.className = 'gallery-item-info';
+    infoEl.innerHTML = `
+        <h3>${link.name}</h3>
+        <p>${link.isDirectory ? 'Folder' : link.size}</p>
+    `;
+    imgEl.appendChild(infoEl);
+
+    // Only add heart icon for non-directory items
+    if (!link.isDirectory) {
+        const heart1El = document.createElement('div');
+        heart1El.className = 'liked-heart';
+        heart1El.setAttribute('data-name', link.name);
+
+        const isLiked = link.name.startsWith('liked');
+        if(likedImagesSet.has(link.name)){
+            console.log('found in list');
+        }
+        if(isLiked ^ likedImagesSet.has(link.name)){
+            heart1El.innerHTML = '&#10084;';
+        } else {
+            heart1El.innerHTML = '&#x2661;';
+        }
+
+        heart1El.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleLike(link.name, heart1El);
+        });
+        
+        imgEl.appendChild(heart1El);
+    }
+
+    fragment.appendChild(imgEl);
+
+    // Observe the image container for viewport entry
+    window.imageObserver.observe(imgEl);
+});
+
+            // Batch DOM update
+            galleryEl.innerHTML = ''; 
+            galleryEl.appendChild(fragment);
+
+            if (isFullReload) {
+                loadingEl.style.display = 'none';
+                galleryEl.style.display = 'grid';
+            }
+
+            // Scroll to preserved index
+            if (preserveIndex !== null) {
+                const galleryItems = galleryEl.getElementsByClassName('gallery-item');
+                if (galleryItems[preserveIndex]) {
+                    galleryItems[preserveIndex].scrollIntoView({
+                        behavior: 'auto',
+                        block: 'center'
+                    });
+                }
+            }
+        };
+
+        // Use requestAnimationFrame for smoother rendering
+        requestAnimationFrame(createGalleryItems);
+
+        return links;
+    } catch (error) {
+        console.error('Error loading images:', error);
+        loadingEl.textContent = 'Error loading images. Please try again.';
+        return [];
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+
+// Optional: Add scroll event listener to dynamically load/unload images
+function setupScrollBasedImageLoading() {
+    if (!window.imageObserver) return;
+
+    const gallery = document.getElementById('gallery');
+    const halfScreenHeight = window.innerHeight / 2;
+
+    const scrollHandler = () => {
+        const galleryItems = gallery.getElementsByClassName('gallery-item');
+        
+        Array.from(galleryItems).forEach(item => {
+            const rect = item.getBoundingClientRect();
+            const img = item.querySelector('img');
+
+            // If image is within half a screen height of viewport
+            if (
+                rect.top >= -halfScreenHeight && 
+                rect.bottom <= window.innerHeight + halfScreenHeight
+            ) {
+                // Ensure image is loaded
+                if (!img.src) {
+                    const linkIndex = item.getAttribute('data-index');
+                    const link = links[linkIndex];
+                    
+                    img.src = link.path;
+                    img.onerror = () => {
+                        // Retry loading image after a short delay
+                        setTimeout(() => {
+                            img.src = link.path;
+                        }, 1000);
+                    };
+                }
+            }
+        });
+    };
+
+    // Throttle scroll event to improve performance
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                scrollHandler();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
+}
+
+// Call this after loading images to set up scroll-based loading
+setupScrollBasedImageLoading();
+
+
+
+async function openLightbox(currentIndex, imageLinks, links) {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const prevBtn = document.getElementById('next-btn');
+    const nextBtn = document.getElementById('prev-btn');
+    const closeBtn = document.getElementById('close-btn');
+
+    let currentImageIndex = currentIndex;
+    let navigating = false;
+
+    // Remove existing heart symbol if present
+    const existingHeartSymbol = lightbox.querySelector('.heart-symbol');
+    if (existingHeartSymbol) {
+        existingHeartSymbol.remove();
+    }
+
+    // Create and configure heart symbol
+    const heartSymbol = Object.assign(document.createElement('div'), {
+        className: 'heart-symbol',
+      
+       // innerHTML: '❤️'
+    });
+    lightbox.appendChild(heartSymbol);
+   
+
+    const updateImage = () => {
+        lightboxImage.src = imageLinks[currentImageIndex];
+       if(imageLinks[currentImageIndex].startsWith('/like') ^ likedImagesSet.has(imageLinks[currentImageIndex].slice(1)))
+       {console.log(imageLinks[currentImageIndex]);
+        heartSymbol.innerHTML ='&#x2665;&#xfe0f;';
+       } else{
+
+        heartSymbol.innerHTML='&#9825;';
+       }
+    };
+
+    const navigateImage = (direction) => {
+        if (navigating) return;
+        navigating = true;
+
+        currentImageIndex = direction === 'next' 
+            ? (currentImageIndex + 1) % imageLinks.length
+            : (currentImageIndex - 1 + imageLinks.length) % imageLinks.length;
+
+        updateImage();
+        setTimeout(() => { navigating = false; }, 600);
+    };
+
+    const showNextImage = () => navigateImage('next');
+    const showPrevImage = () => navigateImage('prev');
+
+    // Initial setup
+    lightbox.style.display = 'flex';
+    updateImage();
+
+    // Double-tap/click handler
+    let lastTap = 0;
+    const handleDoubleTap = async (e) => {
+        const currentTime = Date.now();
+        if (currentTime - lastTap < 300) {
+            e.preventDefault();
+            try {
+                
+                toggleLike(imageLinks[currentImageIndex].slice(1),heartSymbol,currentIndex);
+                
+            } catch (error) {
+                console.error('Error updating image list:', error);
+            }
+        }
+        lastTap = currentTime;
+    };
+
+    // Event Listeners
+    lightboxImage.addEventListener('click', handleDoubleTap);
+    nextBtn.onclick = showNextImage;
+    prevBtn.onclick = showPrevImage;
+
+    const closeAndCleanup = () => {
+        lightbox.style.display = 'none';
+        heartSymbol.style.display = 'none';
+        document.removeEventListener('keydown', handleKeyDown);
+        lightboxImage.removeEventListener('click', handleDoubleTap);
+    };
+
+    const handleKeyDown = (e) => {
+        switch(e.key) {
+            case 'ArrowRight': showNextImage(); break;
+            case 'ArrowLeft': showPrevImage(); break;
+            case 'Escape': closeAndCleanup(); break;
+        }
+    };
+
+    // Add keyboard navigation
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Close button handler
+    closeBtn.onclick = closeAndCleanup;
+}
+async function downloadImages(onlyLiked = false) {
+    const warningModal = document.getElementById('warningModal');
+    warningModal.style.display = 'block';
+
+    return new Promise(async (resolve, reject) => {
+        document.getElementById('closeWarningBtn').onclick = async () => {
+            warningModal.style.display = 'none';
+            
+            try {
+                // First, get the list of images to download
+                const listResponse = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ onlyLiked: onlyLiked })
+                });
+
+                if (!listResponse.ok) {
+                    throw new Error('Failed to get image list');
+                }
+
+                const { images } = await listResponse.json();
+                const downloadResults = [];
+
+                // Function to download a single image with retry
+                async function downloadSingleImage(filePath, maxRetries = 3) {
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            const response = await fetch('/download-single', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ filePath })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Failed to download ${filePath}`);
+                            }
+
+                            const blob = await response.blob();
+                            const fileName = filePath.split(/[/\\]/).pop();
+                            
+                            // Create and trigger download
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileName;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+
+                            return { filePath, status: 'success' };
+                        } catch (error) {
+                            console.error(`Download attempt ${attempt} failed for ${filePath}:`, error);
+                            
+                            if (attempt === maxRetries) {
+                                return { filePath, status: 'failed', error: error.message };
+                            }
+                            
+                            // Wait before retrying (exponential backoff)
+                            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+                        }
+                    }
+                }
+
+                // Download images sequentially with retry
+                for (const filePath of images) {
+                    const result = await downloadSingleImage(filePath);
+                    downloadResults.push(result);
+
+                    // Optional: Add a small delay between downloads to prevent overwhelming the server
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                // Check if all downloads were successful
+                const failedDownloads = downloadResults.filter(r => r.status === 'failed');
+                if (failedDownloads.length > 0) {
+                    console.error('Some downloads failed:', failedDownloads);
+                    reject(new Error('Some images failed to download'));
+                } else {
+                    resolve();
+                }
+            } catch (error) {
+                console.error('Error downloading images:', error);
+                reject(error);
+            }
+        }; document.getElementById('closeWarningBtnonly').onclick = async () => {
+            warningModal.style.display = 'none';
+        }
+    });
+}
+
+    // Event listeners for download buttons
+    document.getElementById('downloadAllBtn').addEventListener('click', () => downloadImages(false));
+    document.getElementById('downloadLikedBtn').addEventListener('click', () => downloadImages(true));
+
+    window.addEventListener('DOMContentLoaded', () => { 
+        loadImages();
+        initImageSizeControl(); 
+    });
+    </script>
+</body>
+</html>
