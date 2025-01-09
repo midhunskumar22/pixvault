@@ -1,7 +1,7 @@
 
 <div style="display: flex; align-items: center;">
   <img src="https://github.com/midhunskumar22/pixvault/blob/main/readme/logo.png?raw=true" alt="Alt Text" width="200">
-  <h1 style="margin-left: 20px;">pixvault allows photographers to share images with like and dislike features</h1>
+  <h style="margin-left: 20px;">pixvault allows photographers to share images with like and dislike features</h>
 </div>
 
 pixvault for windows  will  generate and lunch a fully customizable portfolio webpage which can accessed by clints across the globe ,through this portfolio webpage photographer clints can access , view ,like ,dislike ,and download images in full clarity ,photographer can disallow download option from clints ,and he can see images which are liked by his clints Separately ,for more information go to https://www.pixvault.online
